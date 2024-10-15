@@ -79,6 +79,7 @@ let shuffledQuestions = [];
 let questionAnswered = false;
 let scoreRows = 0;
 
+// Function to shuffle the questions
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -86,15 +87,23 @@ function shuffleArray(array) {
     }
 }
 
+// Function to start the quiz
 function startQuiz() {
     shuffledQuestions = [...questions.easy, ...questions.medium, ...questions.hard];
     shuffleArray(shuffledQuestions);
     loadQuestion();
 }
 
+// Function to load the current question
 function loadQuestion() {
+    if (shuffledQuestions.length === 0) {
+        document.getElementById('transformation-description').innerHTML = "No more questions available.";
+        document.getElementById('answer-options').innerHTML = '';
+        return;
+    }
+
     const question = shuffledQuestions[currentQuestionIndex];
-    
+
     document.getElementById('transformation-description').innerHTML = question.description;
     const answerOptions = document.getElementById('answer-options');
     answerOptions.innerHTML = '';
@@ -114,6 +123,7 @@ function loadQuestion() {
     MathJax.typesetPromise();
 }
 
+// Function to check the selected answer
 function checkAnswer(selectedOption, selectedElement) {
     const correctAnswer = shuffledQuestions[currentQuestionIndex].correctAnswer;
     let points = 0;
@@ -139,9 +149,10 @@ function checkAnswer(selectedOption, selectedElement) {
     MathJax.typesetPromise();
 }
 
+// Function to update the score sheet
 function updateScoreSheet(correctAnswer, points, runningTotal) {
     const scoreSheet = document.getElementById('score-sheet').querySelector('tbody');
-    
+
     if (scoreRows < 11) {
         const row = document.createElement('tr');
         const correctAnswerCell = document.createElement('td');
@@ -155,7 +166,7 @@ function updateScoreSheet(correctAnswer, points, runningTotal) {
         row.appendChild(correctAnswerCell);
         row.appendChild(pointsCell);
         row.appendChild(totalScoreCell);
-        
+
         scoreSheet.appendChild(row);
         scoreRows++;
     } else {
@@ -169,27 +180,31 @@ function updateScoreSheet(correctAnswer, points, runningTotal) {
 
         totalRow.appendChild(totalCell);
         totalRow.appendChild(finalTotalCell);
-        
-        scoreSheet.appendChild(totalRow);
-        
+
         // Reset the score sheet for next set of rows
         scoreRows = 0;
         // Clear existing rows
         while (scoreSheet.firstChild) {
             scoreSheet.removeChild(scoreSheet.firstChild);
         }
-        
+
         // Append the new total row after clearing
         scoreSheet.appendChild(totalRow);
-        
-        // Continue adding rows after clearing
-        updateScoreSheet(correctAnswer, points, runningTotal);
     }
 }
 
 document.getElementById('next-btn').addEventListener('click', () => {
-    currentQuestionIndex = (currentQuestionIndex + 1) % shuffledQuestions.length;
+    currentQuestionIndex++;
+
+    // If current question index exceeds shuffled questions length, reset and shuffle again
+    if (currentQuestionIndex >= shuffledQuestions.length) {
+        currentQuestionIndex = 0;
+        shuffledQuestions = [...questions.easy, ...questions.medium, ...questions.hard]; // Refill the question bank
+        shuffleArray(shuffledQuestions);
+    }
+
     loadQuestion();
 });
 
+// Initialize quiz on window load
 window.onload = startQuiz;
